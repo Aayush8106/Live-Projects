@@ -2,18 +2,21 @@ import express from "express";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 
-const app=express();
-const Port=3000;
+const app = express();
 
-const currentFile=fileURLToPath(import.meta.url);
-const currentFolder=dirname(currentFile);
+const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(currentFolder, "../Frontend/Public")));
+const currentFile = fileURLToPath(import.meta.url);
+const currentFolder = dirname(currentFile);
 
-app.get("/",(req,res)=>{
-    res.sendFile(path.join(currentFolder,"..","./Frontend/index.html"));
-})
+const frontendPath = path.join(currentFolder, "../Frontend/build");
 
-app.listen(Port,()=>{
-    console.log(`Server is on Port:${Port}`);
+app.use(express.static(frontendPath));
+
+app.use((req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
