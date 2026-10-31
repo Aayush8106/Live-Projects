@@ -435,6 +435,7 @@ input:active {
     overflow-x: hidden;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none !important;
 }
 
 /* .site-page.is-mobile img, */

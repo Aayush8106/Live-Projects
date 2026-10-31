@@ -38,6 +38,8 @@ const Contact: React.FC<ContactProps> = (props) => {
     const [isLoading, setIsLoading] = useState(false);
     const [formMessage, setFormMessage] = useState('');
     const [formMessageColor, setFormMessageColor] = useState('');
+    const apiKey = (process.env as any).REACT_APP_MAIL_SERVICE_KEY;
+
 
     useEffect(() => {
         if (validateEmail(email) && name.length > 0 && message.length > 0) {
@@ -61,12 +63,13 @@ const Contact: React.FC<ContactProps> = (props) => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'x-api-key'   :  apiKey
                     },
                     body: JSON.stringify({
-                        company,
-                        email,
-                        name,
-                        message,
+                        company : company.substring(0,40),
+                        email : email.substring(0,60),
+                        name : name.substring(0,25),
+                        message : message.substring(0,500),
                     }),
                 }
             );
@@ -201,7 +204,7 @@ const Contact: React.FC<ContactProps> = (props) => {
                             style={styles.button}
                             type="submit"
                             disabled={!isFormValid || isLoading}
-                            onMouseDown={submitForm}
+                            onClick={submitForm}
                         >
                             {!isLoading ? (
                                 'Send Message'
