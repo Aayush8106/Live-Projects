@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Colors from '../../constants/colors';
-import ShowcaseExplorer from '../applications/ShowcaseExplorer';
+import EmptyApp from '../applications/EmptyApp';
 import FiringDino from '../applications/FiringDino';
+import ShowcaseExplorer from '../applications/ShowcaseExplorer';
 import ShutdownSequence from './ShutdownSequence';
 import Toolbar from './Toolbar';
 import DesktopShortcut, { DesktopShortcutProps } from './DesktopShortcut';
 import { IconName } from '../../assets/icons';
+import MyProfilesApp from '../applications/MyProfiles';
 
 export interface DesktopProps {}
 
@@ -25,6 +27,24 @@ const APPLICATIONS: {
         shortcutIcon: 'showcaseIcon',
         component: ShowcaseExplorer,
     },
+    myProfiles: {
+        key: 'myProfiles',
+        name: 'My Profiles',
+        shortcutIcon: 'myProfiles',
+        component: MyProfilesApp,
+    },
+    myProjects: {
+        key: 'myProjects',
+        name: 'My Projects',
+        shortcutIcon: 'myProjects',
+        component: EmptyApp,
+    },
+    myPackages: {
+        key: 'myPackages',
+        name: 'My Packages',
+        shortcutIcon: 'myPackages',
+        component: EmptyApp,
+    },
     firingDino: {
         key: 'firingDino',
         name: 'Firing Dino',
@@ -33,52 +53,24 @@ const APPLICATIONS: {
     },
 };
 
-const Desktop: React.FC<DesktopProps> = (props) => {
+const Desktop: React.FC<DesktopProps> = () => {
     const [windows, setWindows] = useState<DesktopWindows>({});
-
     const [shortcuts, setShortcuts] = useState<DesktopShortcutProps[]>([]);
-
     const [shutdown, setShutdown] = useState(false);
     const [numShutdowns, setNumShutdowns] = useState(1);
-
-    useEffect(() => {
-        if (shutdown === true) {
-            rebootDesktop();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shutdown]);
-
-    useEffect(() => {
-        const newShortcuts: DesktopShortcutProps[] = [];
-        Object.keys(APPLICATIONS).forEach((key) => {
-            const app = APPLICATIONS[key];
-            newShortcuts.push({
-                shortcutName: app.name,
-                icon: app.shortcutIcon,
-                onOpen: () => {
-                    addWindow(
-                        app.key,
-                        <app.component
-                            onInteract={() => onWindowInteract(app.key)}
-                            onMinimize={() => minimizeWindow(app.key)}
-                            onClose={() => removeWindow(app.key)}
-                            key={app.key}
-                        />
-                    );
-                },
-            });
-        });
-
-        setShortcuts(newShortcuts);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     const rebootDesktop = useCallback(() => {
         setWindows({});
     }, []);
 
+    useEffect(() => {
+        if (shutdown) {
+            rebootDesktop();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shutdown]);
+
     const removeWindow = useCallback((key: string) => {
-        // Absolute hack and a half
         setTimeout(() => {
             setWindows((prevWindows) => {
                 const newWindows = { ...prevWindows };
@@ -98,13 +90,15 @@ const Desktop: React.FC<DesktopProps> = (props) => {
 
     const getHighestZIndex = useCallback((): number => {
         let highestZIndex = 0;
+
         Object.keys(windows).forEach((key) => {
             const window = windows[key];
-            if (window) {
-                if (window.zIndex > highestZIndex)
-                    highestZIndex = window.zIndex;
+
+            if (window && window.zIndex > highestZIndex) {
+                highestZIndex = window.zIndex;
             }
         });
+
         return highestZIndex;
     }, [windows]);
 
@@ -112,12 +106,14 @@ const Desktop: React.FC<DesktopProps> = (props) => {
         (key: string) => {
             const newWindows = { ...windows };
             const highestIndex = getHighestZIndex();
+
             if (
                 newWindows[key].minimized ||
                 newWindows[key].zIndex === highestIndex
             ) {
                 newWindows[key].minimized = !newWindows[key].minimized;
             }
+
             newWindows[key].zIndex = getHighestZIndex() + 1;
             setWindows(newWindows);
         },
@@ -134,7 +130,7 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                 },
             }));
         },
-        [setWindows, getHighestZIndex]
+        [getHighestZIndex]
     );
 
     const startShutdown = useCallback(() => {
@@ -160,12 +156,43 @@ const Desktop: React.FC<DesktopProps> = (props) => {
         [getHighestZIndex]
     );
 
+    useEffect(() => {
+        const newShortcuts: DesktopShortcutProps[] = [];
+
+        Object.keys(APPLICATIONS).forEach((key) => {
+            const app = APPLICATIONS[key];
+
+            newShortcuts.push({
+                shortcutName: app.name,
+                icon: app.shortcutIcon,
+                onOpen: () => {
+                    addWindow(
+                        app.key,
+                        <app.component
+                            key={app.key}
+                            onInteract={() => onWindowInteract(app.key)}
+                            onMinimize={() => minimizeWindow(app.key)}
+                            onClose={() => removeWindow(app.key)}
+                            windowTitle={app.name}
+                            windowBarIcon={app.shortcutIcon}
+                        />
+                    );
+                },
+            });
+        });
+
+        setShortcuts(newShortcuts);
+    }, [addWindow, minimizeWindow, onWindowInteract, removeWindow]);
+
     return !shutdown ? (
         <div style={styles.desktop}>
-            {/* For each window in windows, loop over and render  */}
             {Object.keys(windows).map((key) => {
                 const element = windows[key].component;
-                if (!element) return <div key={`win-${key}`}></div>;
+
+                if (!element) {
+                    return <div key={`win-${key}`}></div>;
+                }
+
                 return (
                     <div
                         key={`win-${key}`}
@@ -183,24 +210,24 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                     </div>
                 );
             })}
+
             <div style={styles.shortcuts}>
-                {shortcuts.map((shortcut, i) => {
-                    return (
-                        <div
-                            style={Object.assign({}, styles.shortcutContainer, {
-                                top: i * 104,
-                            })}
-                            key={shortcut.shortcutName}
-                        >
-                            <DesktopShortcut
-                                icon={shortcut.icon}
-                                shortcutName={shortcut.shortcutName}
-                                onOpen={shortcut.onOpen}
-                            />
-                        </div>
-                    );
-                })}
+                {shortcuts.map((shortcut, i) => (
+                    <div
+                        style={Object.assign({}, styles.shortcutContainer, {
+                            top: i * 104,
+                        })}
+                        key={shortcut.shortcutName}
+                    >
+                        <DesktopShortcut
+                            icon={shortcut.icon}
+                            shortcutName={shortcut.shortcutName}
+                            onOpen={shortcut.onOpen}
+                        />
+                    </div>
+                ))}
             </div>
+
             <Toolbar
                 windows={windows}
                 toggleMinimize={toggleMinimize}

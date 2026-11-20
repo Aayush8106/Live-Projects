@@ -11,6 +11,10 @@ import windowExplorerIcon from './windowExplorerIcon.png';
 import windowsStartIcon from './windowsStartIcon.png';
 import firingDinoIcon from './firingDinoIcon.png';
 import close from './close.png';
+import myPackages from './myPackages.png';
+import myProfiles from './myProfiles.png';
+import myProjects from './myProjects.png';
+import npmImg from './npmImg.png'
 
 const icons = {
     windowResize: windowResize,
@@ -24,6 +28,10 @@ const icons = {
     windowGameIcon: windowGameIcon,
     windowExplorerIcon: windowExplorerIcon,
     windowsStartIcon: windowsStartIcon,
+    myProfiles:myProfiles,
+    myPackages:myPackages,
+    myProjects:myProjects,
+    npmImg:npmImg
 };
 
 export type IconName = keyof typeof icons;
