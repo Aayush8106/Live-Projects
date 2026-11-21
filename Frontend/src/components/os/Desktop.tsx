@@ -8,6 +8,8 @@ import Toolbar from './Toolbar';
 import DesktopShortcut, { DesktopShortcutProps } from './DesktopShortcut';
 import { IconName } from '../../assets/icons';
 import MyProfilesApp from '../applications/MyProfiles';
+import MyProjects from '../applications/MyProjects';
+import MyPackages from '../applications/MyPackages';
 
 export interface DesktopProps {}
 
@@ -37,13 +39,13 @@ const APPLICATIONS: {
         key: 'myProjects',
         name: 'My Projects',
         shortcutIcon: 'myProjects',
-        component: EmptyApp,
+        component: MyProjects,
     },
     myPackages: {
         key: 'myPackages',
         name: 'My Packages',
         shortcutIcon: 'myPackages',
-        component: EmptyApp,
+        component: MyPackages,
     },
     firingDino: {
         key: 'firingDino',

@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IconName } from '../../assets/icons';
+import useViewport from '../../hooks/useViewport';
 import Window from '../os/Window';
+import GitHubPreview from './preview/GitHubPreview';
+import LinkedInPreview from './preview/LinkedInPreview';
+import NpmPreview from './preview/NpmPreview';
 
 interface MyProfilesAppProps extends WindowAppProps {
     windowTitle: string;
@@ -11,17 +15,14 @@ const profiles = [
     {
         name: 'GitHub',
         href: 'https://github.com/aayush8106',
-        icon: 'https://cdn.simpleicons.org/github/181717',
     },
     {
         name: 'LinkedIn',
         href: 'https://www.linkedin.com/in/aayushPatel81',
-        icon: 'https://cdn.jsdelivr.net/npm/bootstrap-icons/icons/linkedin.svg',
     },
     {
         name: 'npm',
         href: 'https://www.npmjs.com/package/create-bbp-node',
-        icon: 'https://cdn.simpleicons.org/npm/CB3837',
     },
 ];
 
@@ -31,45 +32,107 @@ const MyProfilesApp: React.FC<MyProfilesAppProps> = ({
     onMinimize,
     windowTitle,
     windowBarIcon,
-}) => (
-    <Window
-        top={40}
-        left={60}
-        width={640}
-        height={420}
-        windowTitle={windowTitle}
-        windowBarIcon={windowBarIcon}
-        bottomLeftText="My Profiles"
-        closeWindow={onClose}
-        minimizeWindow={onMinimize}
-        onInteract={onInteract}
-    >
-        <div style={styles.page}>
-            <div style={styles.content}>
-                <h1 style={styles.title}>My Profiles</h1>
+}) => {
+    const [activeProfile, setActiveProfile] = useState(profiles[0]);
+    const { isMobile } = useViewport();
 
-                <div style={styles.profiles}>
+    return (
+        <Window
+            top={40}
+            left={60}
+            width={900}
+            height={560}
+            windowTitle={windowTitle}
+            windowBarIcon={windowBarIcon}
+            bottomLeftText="My Profiles"
+            closeWindow={onClose}
+            minimizeWindow={onMinimize}
+            onInteract={onInteract}
+        >
+            <div
+                style={Object.assign(
+                    {},
+                    styles.page,
+                    isMobile ? styles.pageMobile : {}
+                )}
+            >
+                <aside
+                    style={Object.assign(
+                        {},
+                        styles.sidebar,
+                        isMobile ? styles.sidebarMobile : {}
+                    )}
+                >
+                    <h2
+                        style={Object.assign(
+                            {},
+                            styles.sidebarTitle,
+                            isMobile ? styles.sidebarTitleMobile : {}
+                        )}
+                    >
+                        Profiles
+                    </h2>
+
                     {profiles.map((profile) => (
-                        <a
+                        <button
                             key={profile.name}
-                            href={profile.href}
+                            type="button"
+                            onClick={() => setActiveProfile(profile)}
+                            style={Object.assign(
+                                {},
+                                styles.option,
+                                isMobile ? styles.optionMobile : {},
+                                activeProfile.name === profile.name
+                                    ? styles.activeOption
+                                    : {}
+                            )}
+                        >
+                            {profile.name}
+                        </button>
+                    ))}
+                </aside>
+
+                <main
+                    style={Object.assign(
+                        {},
+                        styles.main,
+                        isMobile ? styles.mainMobile : {}
+                    )}
+                >
+                    <div
+                        style={Object.assign(
+                            {},
+                            styles.toolbar,
+                            isMobile ? styles.toolbarMobile : {}
+                        )}
+                    >
+                        <span>{activeProfile.name}</span>
+                        <a
+                            href={activeProfile.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`Open ${profile.name}`}
-                            style={styles.profileLink}
                         >
-                            <img
-                                src={profile.icon}
-                                alt={profile.name}
-                                style={styles.profileImage}
-                            />
+                            Open in new tab
                         </a>
-                    ))}
-                </div>
+                    </div>
+
+                    {activeProfile.name === 'GitHub' ? (
+                        <GitHubPreview />
+                    ) : activeProfile.name === 'LinkedIn' ? (
+                        <LinkedInPreview />
+                    ) : activeProfile.name === 'npm' ? (
+                        <NpmPreview />
+                    ) : (
+                        <div style={styles.comingSoon}>
+                            <h2>{activeProfile.name} preview is next</h2>
+                            <p>Use “Open in new tab” above to visit the original profile.</p>
+                        </div>
+                    )}
+                </main>
             </div>
-        </div>
-    </Window>
-);
+        </Window>
+    );
+};
 
 const styles: StyleSheetCSS = {
     page: {
@@ -79,48 +142,98 @@ const styles: StyleSheetCSS = {
         bottom: 0,
         left: 0,
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        overflow: 'hidden',
         backgroundColor: '#ffffff',
-        padding: 24,
-        boxSizing: 'border-box',
     },
-    content: {
+    pageMobile: {
+        flexDirection: 'column',
+    },
+    sidebar: {
         display: 'flex',
         flexDirection: 'column',
-        width: 'max-content',
-        maxWidth: '100%',
-    },
-    title: {
-        fontSize: 'clamp(40px, 10vw, 72px)',
-        lineHeight: 1,
-        textAlign: 'center',
-        whiteSpace: 'nowrap',
-        margin: 0,
-    },
-    profiles: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        marginTop: 32,
-    },
-    profileLink: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 64,
-        height: 64,
+        flexShrink: 0,
+        width: 160,
+        padding: 12,
+        gap: 8,
         boxSizing: 'border-box',
-        border: '1px solid #777777',
-        backgroundColor: '#ffffff',
+        borderRight: '1px solid #808080',
+        backgroundColor: '#f0f0f0',
+    },
+    sidebarMobile: {
+        width: '100%',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        padding: 8,
+        gap: 6,
+        borderRight: 'none',
+        borderBottom: '1px solid #808080',
+    },
+    sidebarTitle: {
+        margin: '4px 0 12px',
+        fontSize: 18,
+    },
+    sidebarTitleMobile: {
+        width: '100%',
+        margin: '0 0 4px',
+        fontSize: 16,
+    },
+    option: {
+        width: '100%',
+        padding: '10px 8px',
+        border: '1px solid #808080',
+        textAlign: 'left',
         cursor: 'pointer',
     },
-    profileImage: {
-        display: 'block',
-        width: 48,
-        height: 48,
-        objectFit: 'contain',
+    optionMobile: {
+        flex: '1 1 70px',
+        minWidth: 60,
+        width: 'auto',
+        padding: '8px 4px',
+        textAlign: 'center',
+    },
+    activeOption: {
+        backgroundColor: '#000080',
+        color: '#ffffff',
+    },
+    main: {
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'column',
+        minWidth: 0,
+    },
+    mainMobile: {
+        minHeight: 0,
+    },
+    toolbar: {
+        display: 'flex',
+        flexShrink: 0,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 12px',
+        height: 38,
+        borderBottom: '1px solid #808080',
+        backgroundColor: '#f0f0f0',
+    },
+    toolbarMobile: {
+        height: 32,
+        padding: '0 8px',
+        fontSize: 12,
+    },
+    iframe: {
+        flex: 1,
+        width: '100%',
+        minHeight: 0,
+        border: 'none',
+        backgroundColor: '#ffffff',  
+    },comingSoon: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+        textAlign: 'center',
     },
 };
 
